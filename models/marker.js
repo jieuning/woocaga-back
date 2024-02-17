@@ -2,13 +2,13 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const coordinateSchema = new Schema({
-  coordinates: {
-    type: [
-      {
-        latitude: Number,
-        longitude: Number,
-      },
-    ],
+  latitude: {
+    type: Number,
+    required: true,
+  },
+  longitude: {
+    type: Number,
+    required: true,
   },
 });
 
@@ -19,24 +19,13 @@ const markerSchema = new Schema({
   },
   address: {
     type: String,
-    default: null,
+    required: true,
   },
   category: {
     type: String,
-    default: null,
+    required: true,
   },
-  coordinates: [
-    {
-      latitude: {
-        type: Number,
-        required: true,
-      },
-      longitude: {
-        type: Number,
-        required: true,
-      },
-    },
-  ],
+  coordinates: [coordinateSchema],
 });
 
 const Markers = mongoose.model("Markers", markerSchema);

@@ -1,23 +1,51 @@
 const router = require("express").Router();
-const { Markers, Coordinates } = require("../models/marker");
+const { Markers } = require("../models/marker");
 require("dotenv").config();
 
+// 모든 마커
 router.get("/all", async (req, res) => {
   try {
-    const cafeList = await Markers.find();
+    const markers = await Markers.find();
 
-    const result = {
-      cafes: cafeList,
-    };
+    console.log(markers);
 
-    console.log("데이터", result);
-    res.status(200).json(result);
+    res.status(200).json(markers);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: "서버 오류가 발생했습니다." });
   }
 });
 
-// 마커 데이터 추가
+// category가 "디저트"인 마커
+router.get("/desserts", async (req, res) => {
+  try {
+    const desserts = await Markers.find({ category: "디저트" });
+
+    if (!desserts) res.status(404).json("일치하는 데이터가 존재하지 않습니다.");
+    res.status(200).json(desserts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류가 발생했습니다." });
+  }
+});
+
+// category가 "커피"인 마커
+router.get("/coffee", async (req, res) => {
+  try {
+    const desserts = await Markers.find({ category: "커피류" });
+
+    if (!desserts) {
+      res.status(404).json("일치하는 데이터가 존재하지 않습니다.");
+    }
+
+    res.status(200).json(desserts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류가 발생했습니다." });
+  }
+});
+
+// 마커 추가
 router.post("/add", async (req, res) => {
   try {
     const { address, category, coordinates } = req.body;
