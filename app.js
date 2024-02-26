@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const markerRouter = require("./router/markerRouter");
+const registerRouter = require("./router/registerRouter");
+const userRouter = require("./router/userRouter");
 
 const port = process.env.PORT;
 const uri = process.env.MONGO_CONNECTION;
@@ -15,7 +17,9 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cors());
 
 // 라우터 사용
-app.use("/marker", markerRouter);
+app.use("/api", markerRouter);
+app.use("/api", registerRouter);
+app.use("/api", userRouter);
 
 mongoose
   .connect(uri)

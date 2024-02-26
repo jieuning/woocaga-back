@@ -1,13 +1,11 @@
 const router = require("express").Router();
-const { Markers } = require("../models/marker");
+const { Markers } = require("../models/users");
 require("dotenv").config();
 
 // 모든 마커
 router.get("/all", async (req, res) => {
   try {
     const markers = await Markers.find();
-
-    console.log(markers);
 
     res.status(200).json(markers);
   } catch (error) {
@@ -53,7 +51,7 @@ router.post("/add", async (req, res) => {
     const findMarker = await Markers.findOne({ address: address });
 
     if (findMarker) {
-      res
+      return res
         .status(400)
         .json({ error: "이미 해당 주소로 등록된 마커가 존재합니다." });
     }
@@ -67,10 +65,11 @@ router.post("/add", async (req, res) => {
     // 새로운 마커 저장
     await newMarker.save();
 
-    res
+    return res
       .status(200)
       .json({ message: "데이터가 성공적으로 추가되었습니다.", newMarker });
   } catch (error) {
+    console.log("message", error);
     res.status(500).json({ error: error.message });
   }
 });
