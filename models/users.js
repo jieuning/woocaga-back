@@ -10,6 +10,14 @@ const coordinateSchema = new Schema({
     type: Number,
     required: true,
   },
+  x: {
+    type: Number,
+    required: true,
+  },
+  y: {
+    type: Number,
+    required: true,
+  },
 });
 
 const markerSchema = new Schema({
