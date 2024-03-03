@@ -62,7 +62,7 @@ router.post("/add", async (req, res) => {
 
     getMarker.forEach((marker) => {
       marker.coordinates.forEach((coordinate) => {
-        if (marker.category === "커피류") {
+        if (marker.category !== "디저트") {
           coffeeCoordinates.push(coordinate);
         } else {
           dessertCoordinates.push(coordinate);
@@ -104,14 +104,17 @@ router.post("/add", async (req, res) => {
 
       // 현재 마커와 가장 가까운 마커와의 거리를 계산
       // 100 초과면 false 아니면 true
-      const distance = coffeeCoordinates
-        ? distanceBetweenMarker(coffeeCoordinates, positions)
-        : distanceBetweenMarker(dessertCoordinates, positions);
+      let distance;
+      if (category !== "디저트") {
+        distance = distanceBetweenMarker(coffeeCoordinates, positions);
+      } else {
+        distance = distanceBetweenMarker(dessertCoordinates, positions);
+      }
 
-      if (distance === true) {
-        return res
-          .status(403)
-          .json({ error: "다른 마커와의 거리가 80m이상이여야 합니다." });
+      if (distance !== null && distance === false) {
+        return res.status(403).json({
+          error: "다른 마커와의 거리가 80m 이상이어야 합니다.",
+        });
       }
 
       const newMarker = new Markers({
