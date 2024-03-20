@@ -2,7 +2,9 @@ const router = require("express").Router();
 const axios = require("axios");
 const { Markers } = require("../models/users");
 require("dotenv").config();
+// utils
 const distanceBetweenMarker = require("../utils/distanceBetweenMarker");
+const getMarkersByCategory = require("../utils/getMarkersByCategory");
 
 // 모든 마커
 router.get("/all", async (req, res) => {
@@ -20,29 +22,60 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// category가 "디저트"인 마커
-router.get("/desserts", async (req, res) => {
+// 모든 마커
+router.get("/pagination", async (req, res) => {
   try {
-    const desserts = await Markers.find({ category: "디저트" });
+    // 쿼리 파라미터
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const user = req.query.user;
+    const category = req.query.category;
 
-    if (!desserts) res.status(404).json("일치하는 데이터가 존재하지 않습니다.");
-    res.status(200).json(desserts);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "서버 오류가 발생했습니다." });
-  }
-});
+    console.log(category);
 
-// category가 "커피"인 마커
-router.get("/coffee", async (req, res) => {
-  try {
-    const desserts = await Markers.find({ category: "커피류" });
+    const markerFind = await Markers.find({ useremail: user });
 
-    if (!desserts) {
-      res.status(404).json("일치하는 데이터가 존재하지 않습니다.");
+    if (!markerFind && !user) {
+      res.status(404).json({ markerFind, user });
     }
 
-    res.status(200).json(desserts);
+    let getMarkers;
+    if (category !== "디저트") {
+      const coffeeMarkers = getMarkersByCategory.getCoffeeMarkers(
+        markerFind,
+        category
+      );
+      getMarkers = coffeeMarkers;
+    } else {
+      const dessertMarkers = getMarkersByCategory.getDessertMarkers(
+        markerFind,
+        category
+      );
+      getMarkers = dessertMarkers;
+    }
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = page * pageSize;
+    const markers = getMarkers.slice(startIndex, endIndex);
+    const lastIndex = Math.ceil(getMarkers.length / pageSize);
+    let lastPage;
+
+    if (markers.length < pageSize && lastIndex) {
+      lastPage = true;
+    } else {
+      lastPage = false;
+    }
+
+    const response = {
+      page: page,
+      pageSize: pageSize,
+      totalMarkers: markerFind.length,
+      totalPages: lastIndex,
+      markers: markers,
+      lastPage: lastPage,
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
@@ -52,29 +85,17 @@ router.get("/coffee", async (req, res) => {
 // 마커 추가
 router.post("/add", async (req, res) => {
   try {
-    const { address, category, coordinates } = req.body;
+    const { address, category, coordinates, useremail } = req.body;
 
     const findMarker = await Markers.findOne({ address: address });
-    const getMarker = await Markers.find();
-
-    let coffeeCoordinates = [];
-    let dessertCoordinates = [];
-
-    getMarker.forEach((marker) => {
-      marker.coordinates.forEach((coordinate) => {
-        if (marker.category !== "디저트") {
-          coffeeCoordinates.push(coordinate);
-        } else {
-          dessertCoordinates.push(coordinate);
-        }
-      });
-    });
 
     if (findMarker) {
       return res
         .status(400)
         .json({ error: "이미 해당 주소로 등록된 마커가 존재합니다." });
     }
+
+    const getMarker = await Markers.find();
 
     // WGS84 -> WTM
     const response = await axios.get(
@@ -102,8 +123,21 @@ router.post("/add", async (req, res) => {
         },
       ];
 
+      let coffeeCoordinates = [];
+      let dessertCoordinates = [];
+
+      getMarker.forEach((marker) => {
+        marker.coordinates.forEach((coordinate) => {
+          if (marker.category !== "디저트") {
+            coffeeCoordinates.push(coordinate);
+          } else {
+            dessertCoordinates.push(coordinate);
+          }
+        });
+      });
+
       // 현재 마커와 가장 가까운 마커와의 거리를 계산
-      // 100 초과면 false 아니면 true
+      // 80m 이상이면 false 아니면 true
       let distance;
       if (category !== "디저트") {
         distance = distanceBetweenMarker(coffeeCoordinates, positions);
@@ -118,6 +152,7 @@ router.post("/add", async (req, res) => {
       }
 
       const newMarker = new Markers({
+        useremail: useremail,
         address: address,
         category: category,
         coordinates: positions,
@@ -134,6 +169,30 @@ router.post("/add", async (req, res) => {
   } catch (error) {
     console.log("message", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// 마커 삭제
+router.delete("/marker_delete", async (req, res) => {
+  try {
+    const { address } = req.body;
+
+    console.log(address);
+
+    const deleteMarker = await Markers.deleteOne({ address: address }).exec();
+
+    if (!deleteMarker) {
+      // 일치하는 주소가 없을 시
+      console.log(
+        res.status(404).send({ message: "삭제할 마커를 찾을 수 없습니다." })
+      );
+      return res
+        .status(404)
+        .send({ message: "삭제할 마커를 찾을 수 없습니다." });
+    }
+    res.status(200).send({ message: "마커가 성공적으로 삭제되었습니다." });
+  } catch (err) {
+    res.status(500).send({ message: "서버 에러가 발생했습니다.", error: err });
   }
 });
 

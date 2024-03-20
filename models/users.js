@@ -21,9 +21,9 @@ const coordinateSchema = new Schema({
 });
 
 const markerSchema = new Schema({
-  name: {
+  useremail: {
     type: String,
-    default: null,
+    required: true,
   },
   address: {
     type: String,

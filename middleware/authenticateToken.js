@@ -16,11 +16,13 @@ const authenticateToken = (req, res, next) => {
   jwt.verify(token, key, (err, decoded) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
+        console.log(err);
         return res.status(403).json({
           code: 403,
           message: "토큰이 만료되었습니다.",
         });
       } else {
+        console.log(err);
         return res.status(403).json({
           code: 403,
           message: "토큰이 유효하지 않습니다.",
