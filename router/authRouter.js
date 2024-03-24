@@ -60,7 +60,6 @@ router.post("/refresh", (req, res) => {
   const accessToken =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
 
-  console.log(accessToken);
   if (accessToken === undefined) {
     return res.status(401).json({
       code: 401,
@@ -99,7 +98,6 @@ router.post("/refresh", (req, res) => {
 router.delete("/delete", authenticateToken, async (req, res) => {
   try {
     const email = req.decoded.email;
-    console.log(email);
     const userDelete = await User.deleteOne({ email: email });
     const markerDelete = await Markers.deleteMany({ useremail: email });
 
