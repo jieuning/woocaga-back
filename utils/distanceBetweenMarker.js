@@ -6,6 +6,7 @@ const distanceBetweenMarker = (coordinates, positions) => {
   let result = null;
   const currentMarkerWtmX = positions[0].x;
   const currentMarkerWtmY = positions[0].y;
+  
   result = coordinates.reduce((closest, coordinate) => {
     const markerWtmX = coordinate.x;
     const markerWtmY = coordinate.y;

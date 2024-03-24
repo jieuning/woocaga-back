@@ -22,7 +22,7 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// 모든 마커
+// 페이지네이션
 router.get("/pagination", async (req, res) => {
   try {
     // 쿼리 파라미터
@@ -30,8 +30,6 @@ router.get("/pagination", async (req, res) => {
     const pageSize = parseInt(req.query.pageSize) || 10;
     const user = req.query.user;
     const category = req.query.category;
-
-    console.log(category);
 
     const markerFind = await Markers.find({ useremail: user });
 
@@ -69,7 +67,7 @@ router.get("/pagination", async (req, res) => {
     const response = {
       page: page,
       pageSize: pageSize,
-      totalMarkers: markerFind.length,
+      totalMarkers: getMarkers.length,
       totalPages: lastIndex,
       markers: markers,
       lastPage: lastPage,
@@ -102,7 +100,7 @@ router.post("/add", async (req, res) => {
       "https://dapi.kakao.com/v2/local/geo/transcoord.json",
       {
         headers: {
-          Authorization: `KakaoAK ${process.env.VITE_KAKAO_REST_API_KEY}`,
+          Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}`,
         },
         params: {
           x: String(coordinates[0].latitude),
@@ -176,8 +174,6 @@ router.post("/add", async (req, res) => {
 router.delete("/marker_delete", async (req, res) => {
   try {
     const { address } = req.body;
-
-    console.log(address);
 
     const deleteMarker = await Markers.deleteOne({ address: address }).exec();
 
