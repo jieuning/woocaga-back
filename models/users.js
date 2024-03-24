@@ -10,12 +10,20 @@ const coordinateSchema = new Schema({
     type: Number,
     required: true,
   },
+  x: {
+    type: Number,
+    required: true,
+  },
+  y: {
+    type: Number,
+    required: true,
+  },
 });
 
 const markerSchema = new Schema({
-  name: {
+  useremail: {
     type: String,
-    default: null,
+    required: true,
   },
   address: {
     type: String,
@@ -23,12 +31,26 @@ const markerSchema = new Schema({
   },
   category: {
     type: String,
+    default: null,
+  },
+  coordinates: {
+    type: [coordinateSchema],
+    default: [],
+  },
+});
+
+const userSchema = new Schema({
+  email: {
+    type: String,
     required: true,
   },
-  coordinates: [coordinateSchema],
+  password: {
+    type: String,
+    required: true,
+  },
 });
 
 const Markers = mongoose.model("Markers", markerSchema);
 const Coordinate = mongoose.model("Coordinates", coordinateSchema);
-
-module.exports = { Markers, Coordinate };
+const User = mongoose.model("users", userSchema);
+module.exports = { User, Markers, Coordinate };
